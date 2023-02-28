@@ -12,12 +12,17 @@ export const xdefiWallet = ({
   chains,
   shimDisconnect,
 }: XDEFIWalletOptions): Wallet => {
+  const installed =
+    typeof window !== 'undefined' &&
+    //@ts-ignore
+    typeof window?.xfi !== 'undefined' &&
+    //@ts-ignore
+    (window.xfi?.ethereum as any).isXDEFI === true;
+
   return {
     id: 'xdefi',
     name: 'XDEFI Wallet',
-    installed:
-      typeof window !== 'undefined' &&
-      (window.ethereum as any)?.isXDEFI === true,
+    installed,
     iconUrl: async () => (await import('./xdefiWallet.svg')).default,
     iconBackground: '#fff',
     downloadUrls: {
@@ -27,7 +32,12 @@ export const xdefiWallet = ({
     createConnector: () => ({
       connector: new InjectedConnector({
         chains,
-        options: { shimDisconnect },
+        options: {
+          shimDisconnect,
+          getProvider: () =>
+            //@ts-ignore
+            installed ? (window.xfi?.ethereum as any) : undefined,
+        },
       }),
     }),
   };
