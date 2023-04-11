@@ -125,8 +125,8 @@ const connectors = connectorsForWallets([
       omniWallet({ chains }),
       tahoWallet({ chains }),
       trustWallet({ chains }),
-      zerionWallet({ chains }),
       xdefiWallet({ chains }),
+      zerionWallet({ chains }),
     ],
   },
 ]);

@@ -1,28 +1,34 @@
 /* eslint-disable sort-keys-fix/sort-keys-fix */
+import type { InjectedConnectorOptions } from '@wagmi/core/dist/connectors/injected';
 import { InjectedConnector } from 'wagmi/connectors/injected';
 import { Chain } from '../../../components/RainbowKitProvider/RainbowKitChainContext';
 import { Wallet } from '../../Wallet';
 
+declare global {
+  interface Window {
+    xfi: any;
+  }
+}
+
 export interface XDEFIWalletOptions {
   chains: Chain[];
-  shimDisconnect?: boolean;
 }
 
 export const xdefiWallet = ({
   chains,
-  shimDisconnect,
-}: XDEFIWalletOptions): Wallet => {
-  const installed =
-    typeof window !== 'undefined' &&
-    //@ts-ignore
-    typeof window?.xfi !== 'undefined' &&
-    //@ts-ignore
-    (window.xfi?.ethereum as any).isXDEFI === true;
-
+  ...options
+}: XDEFIWalletOptions & InjectedConnectorOptions): Wallet => {
+  const isInstalled = (msg?: string) => {
+    console.log(
+      typeof window !== 'undefined' && typeof window?.xfi !== 'undefined',
+      'isInstalled' + msg
+    );
+    return typeof window !== 'undefined' && typeof window?.xfi !== 'undefined';
+  };
   return {
     id: 'xdefi',
     name: 'XDEFI Wallet',
-    installed,
+    installed: isInstalled(),
     iconUrl: async () => (await import('./xdefiWallet.svg')).default,
     iconBackground: '#fff',
     downloadUrls: {
@@ -33,10 +39,13 @@ export const xdefiWallet = ({
       connector: new InjectedConnector({
         chains,
         options: {
-          shimDisconnect,
-          getProvider: () =>
-            //@ts-ignore
-            installed ? (window.xfi?.ethereum as any) : undefined,
+          //@ts-ignore
+          getProvider: () => {
+            return isInstalled('getProvider')
+              ? (window.xfi?.ethereum as any)
+              : undefined;
+          },
+          ...options,
         },
       }),
     }),
